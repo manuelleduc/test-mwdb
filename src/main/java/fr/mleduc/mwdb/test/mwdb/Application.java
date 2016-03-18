@@ -27,7 +27,7 @@ public class Application {
         // 5 -> persit it                           |
         // 6 -> repeat N time ----------------------+
 
-        final KGraph graph = GraphBuilder.builder().withScheduler(new NoopScheduler()).buildGraph();
+        final KGraph graph = GraphBuilder.builder().buildGraph();
         final Deferred<Boolean, Object, Object> connectDeferred = connect(graph);
 
         connectDeferred.then(o -> {
@@ -60,7 +60,8 @@ public class Application {
 
     private static Promise<List<LifeOperation>, Object, Object> doLife(CellGrid result) {
         final DeferredObject<List<LifeOperation>, Object, Object> deferred = new DeferredObject<>();
-        deferred.resolve(new GameOfLifeService().doLife(result));
+        final List<LifeOperation> lifeOperations = new GameOfLifeService().doLife(result);
+        deferred.resolve(lifeOperations);
         return deferred;
     }
 
@@ -71,7 +72,6 @@ public class Application {
                     .map(kNode -> {
                         final long x = (long) kNode.att("x");
                         final long y = (long) kNode.att("y");
-                        System.out.println("Cell("+x+","+y+") = alive ? " + kNode.att("a"));
                         return new Cell(x, y);
                     })
                     .collect(Collectors.toList());
@@ -101,14 +101,16 @@ public class Application {
 
     private static Promise<Boolean, Object, Object> removeCell(KGraph graph, long saveTime, long x, long y) {
         final Promise<Boolean, Object, Object> res = lookupCellByCoordinates(graph, saveTime, x, y)
-                .then((DonePipe<KNode, Boolean, Object, Object>) result -> {
+                .then((DonePipe<KNode, Boolean, Object, Object>) cell -> {
                     final Deferred<Boolean, Object, Object> ret = new DeferredObject<>();
-                    if(result == null) {
+                    if(cell == null) {
                         System.out.println("Cell("+x+", "+y+") not found");
                     } else {
-                        result.attSet("a", KType.LONG, 0L);
+                        graph.unindex("cells", cell, new String[] {"x", "y"}, (resolve) -> {
+                            System.out.println("Cell " + cell + " unindexed");
+                            ret.resolve(resolve);
+                        });
                     }
-                    ret.resolve(true);
                     return ret;
                 });
         return res;
@@ -116,29 +118,34 @@ public class Application {
 
     private static Deferred<KNode, Object, Object> lookupCellByCoordinates(final KGraph graph, final long saveTime, final long x, final long y) {
         final Deferred<KNode, Object, Object> deferred = new DeferredObject<>();
-        final String query = "x=" + x + ",y=" + y+",a="+1L;
+        final String query = "x=" + x + ",y=" + y;
         graph.find(0, saveTime, "cells", query, deferred::resolve);
         return deferred;
     }
 
     private static Deferred<KNode[], Object, Object> getAllCells(KGraph graph, long time) {
         final Deferred<KNode[], Object, Object> ret = new DeferredObject<>();
-        graph.all(0, time, "cells", ret::resolve);
+        System.out.println("Before all");
+        graph.all(0, time, "cells", (resolve) -> {
+            System.out.println("After all");
+            ret.resolve(resolve);
+        });
         return ret;
     }
 
     private static KNode createCell(KGraph graph, long time, long x, long y) {
-        System.out.println("at time " + x + " -> cell("+x+","+y+")");
         final KNode cell = graph.newNode(0, time);
         cell.attSet("x", KType.LONG, x);
         cell.attSet("y", KType.LONG, y);
-        cell.attSet("a", KType.LONG, 1L);
         return cell;
     }
 
     private static Deferred<Boolean, Object, Object> indexCell(KGraph graph, KNode cell) {
         final Deferred<Boolean, Object, Object> ret = new DeferredObject<>();
-        graph.index("cells", cell, new String[] {"x", "y", "a"}, ret::resolve);
+        graph.index("cells", cell, new String[] {"x", "y"}, result -> {
+            System.out.println("Cell " + cell + " indexed");
+            ret.resolve(result);
+        });
         return ret;
     }
 
