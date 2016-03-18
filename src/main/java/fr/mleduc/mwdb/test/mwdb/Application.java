@@ -116,7 +116,7 @@ public class Application {
 
     private static Deferred<KNode, Object, Object> lookupCellByCoordinates(final KGraph graph, final long saveTime, final long x, final long y) {
         final Deferred<KNode, Object, Object> deferred = new DeferredObject<>();
-        final String query = "x=" + x + ",y=" + y;
+        final String query = "x=" + x + ",y=" + y+",a="+1L;
         graph.find(0, saveTime, "cells", query, deferred::resolve);
         return deferred;
     }
