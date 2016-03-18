@@ -138,7 +138,7 @@ public class Application {
 
     private static Deferred<Boolean, Object, Object> indexCell(KGraph graph, KNode cell) {
         final Deferred<Boolean, Object, Object> ret = new DeferredObject<>();
-        graph.index("cells", cell, new String[] {"x", "y"}, ret::resolve);
+        graph.index("cells", cell, new String[] {"x", "y", "a"}, ret::resolve);
         return ret;
     }
 
