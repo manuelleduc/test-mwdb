@@ -104,7 +104,7 @@ public class Application {
                 .then((DonePipe<KNode, Boolean, Object, Object>) result -> {
                     final Deferred<Boolean, Object, Object> ret = new DeferredObject<>();
                     if(result == null) {
-                        System.out.println("Cell("+x+", "+y+") not found");
+                        System.out.println("Cell("+x+", "+y+") not found"); // result should not be null
                     } else {
                         result.attSet("a", KType.LONG, 0L);
                     }
@@ -116,7 +116,7 @@ public class Application {
 
     private static Deferred<KNode, Object, Object> lookupCellByCoordinates(final KGraph graph, final long saveTime, final long x, final long y) {
         final Deferred<KNode, Object, Object> deferred = new DeferredObject<>();
-        final String query = "x=" + x + ",y=" + y;
+        final String query = "x=" + x + ",y=" + y+",a="+1L;
         graph.find(0, saveTime, "cells", query, deferred::resolve);
         return deferred;
     }
