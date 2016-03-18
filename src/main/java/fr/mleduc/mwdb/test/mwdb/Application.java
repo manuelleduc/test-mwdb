@@ -14,6 +14,7 @@ import org.mwdb.GraphBuilder;
 import org.mwdb.KGraph;
 import org.mwdb.KNode;
 import org.mwdb.KType;
+import org.mwdb.chunk.offheap.OffHeapChunkSpace;
 import org.mwdb.task.NoopScheduler;
 
 import java.util.ArrayList;
@@ -33,7 +34,10 @@ public class Application {
         // 5 -> persit it                           |
         // 6 -> repeat N time ----------------------+
 
-        final KGraph graph = GraphBuilder.builder().withScheduler(new NoopScheduler()).buildGraph();
+        final KGraph graph = GraphBuilder.builder()
+                .withScheduler(new NoopScheduler())
+                .withSpace(new OffHeapChunkSpace(1000, 20))
+                .buildGraph();
         final Deferred<Boolean, Object, Object> connectDeferred = connect(graph);
 
         // .withSpace(new OffHeapChunkSpace(10000, 20))
