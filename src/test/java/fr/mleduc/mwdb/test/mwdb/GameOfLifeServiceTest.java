@@ -113,4 +113,34 @@ public class GameOfLifeServiceTest {
                         LifeOperation.deadCell(1, 0), LifeOperation.newCell(1, -1))
                 .hasSize(8);
     }
+
+    @Test
+    public void testSquareBehaviour2() throws Exception {
+
+        final Cell cell1 = new Cell(0L, 0L);
+        final Cell cell2 = new Cell(1L, -1L);
+        final Cell cell3 = new Cell(2L, 0L);
+        final Cell cell4 = new Cell(3L, 1L);
+        final Cell cell6 = new Cell(2L, 2L);
+        final Cell cell7 = new Cell(1L, 3L);
+        final Cell cell8 = new Cell(0L, 2L);
+        final Cell cell9 = new Cell(-1L, 1L);
+
+        final CellGrid cellGrid = new CellGrid()
+                .add(cell1)
+                .add(cell2)
+                .add(cell3)
+                .add(cell4)
+                .add(cell6)
+                .add(cell7)
+                .add(cell8)
+                .add(cell9);
+        final List<LifeOperation> res = gameOfLifeService.doLife(cellGrid);
+        Assertions.assertThat(res)
+                .contains(LifeOperation.newCell(0, 1),
+                        LifeOperation.newCell(1, 0),
+                        LifeOperation.newCell(1, 2),
+                        LifeOperation.newCell(2, 1))
+                .hasSize(4);
+    }
 }
