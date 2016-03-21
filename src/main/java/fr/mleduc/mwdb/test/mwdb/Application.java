@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
  */
 public class Application {
     public static void main(String[] args) throws InterruptedException {
+
+        Thread.sleep(30000);
         //Thread.sleep(3000);
         // 1 -> init a first list of LifeOperation (life only)
         // 2 -> persist it
@@ -31,7 +33,7 @@ public class Application {
 
         final KGraph graph = GraphBuilder.builder()
                 //.withScheduler(new NoopScheduler())
-                .withSpace(new HeapChunkSpace(10000, 10000))
+                //.withSpace(new HeapChunkSpace(10000, 10000))
                 .buildGraph();
         final Deferred<Boolean, Object, Object> connectDeferred = connect(graph);
 
@@ -48,7 +50,7 @@ public class Application {
 
             Promise<Boolean, Object, Object> firstLifeOperations = proceedLifeOperations(graph, 0, lifeOperations)
                     .then((MultipleResults result) -> save(graph));
-            final int max = 5;
+            final int max = 500;
             for (int i = 1; i < max; i++) {
                 firstLifeOperations = step(graph, firstLifeOperations, i);
             }
@@ -147,7 +149,7 @@ public class Application {
         final Deferred<KNode, Object, Object> deferred = new DeferredObject<>();
         final String query = "x=" + x + ",y=" + y;
         graph.find(0, saveTime, "cells", query, (cell) -> {
-            deferred.resolve(cell);
+            deferred.resolve(cell[0]);
         });
         return deferred;
     }
