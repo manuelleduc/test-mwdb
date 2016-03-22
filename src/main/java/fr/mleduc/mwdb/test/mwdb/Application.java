@@ -1,15 +1,19 @@
 package fr.mleduc.mwdb.test.mwdb;
 
 
-import org.jdeferred.*;
+import org.jdeferred.Deferred;
+import org.jdeferred.DeferredManager;
+import org.jdeferred.DonePipe;
+import org.jdeferred.Promise;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
 import org.jdeferred.multiple.MasterProgress;
 import org.jdeferred.multiple.MultipleResults;
 import org.jdeferred.multiple.OneReject;
-import org.mwdb.*;
-import org.mwdb.chunk.heap.HeapChunkSpace;
-import org.mwdb.chunk.offheap.OffHeapChunkSpace;
+import org.mwdb.GraphBuilder;
+import org.mwdb.KGraph;
+import org.mwdb.KNode;
+import org.mwdb.KType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +26,7 @@ import java.util.stream.Collectors;
 public class Application {
     public static void main(String[] args) throws InterruptedException {
 
-        Thread.sleep(30000);
+        //Thread.sleep(30000);
         //Thread.sleep(3000);
         // 1 -> init a first list of LifeOperation (life only)
         // 2 -> persist it
@@ -50,9 +54,12 @@ public class Application {
 
             Promise<Boolean, Object, Object> firstLifeOperations = proceedLifeOperations(graph, 0, lifeOperations)
                     .then((MultipleResults result) -> save(graph));
-            final int max = 500;
+            final int max = 6000;
+            //final List<int> jksdfjksdf = new Arr
             for (int i = 1; i < max; i++) {
+                //long start = System.currentTimeMillis();
                 firstLifeOperations = step(graph, firstLifeOperations, i);
+
             }
 
             final Promise<CellGrid, Object, Object> then1 = firstLifeOperations
@@ -68,7 +75,8 @@ public class Application {
                 //.then(c -> {showState(lifeI, c); })
                 .then((CellGrid result) -> doLife(result))
                 .then((List<LifeOperation> result) -> proceedLifeOperations(graph, lifeI, result))
-                .then((MultipleResults result) -> save(graph));
+                .then((MultipleResults result) -> save(graph))
+                ;
     }
 
     private static void showState(long lifeI, CellGrid c) {
@@ -97,6 +105,7 @@ public class Application {
                         final long x = (long) kNode.att("x");
                         final long y = (long) kNode.att("y");
                         final Cell cell = new Cell(x, y);
+                        kNode.free();
                         return cell;
                     })
                     .collect(Collectors.toList());
