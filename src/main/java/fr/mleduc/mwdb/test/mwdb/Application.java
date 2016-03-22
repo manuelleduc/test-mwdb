@@ -14,10 +14,12 @@ import org.mwdb.GraphBuilder;
 import org.mwdb.KGraph;
 import org.mwdb.KNode;
 import org.mwdb.KType;
+import org.mwdb.chunk.offheap.OffHeapChunkSpace;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -34,27 +36,31 @@ public class Application {
         // 4 -> produce a serie of life actions     |
         // 5 -> persit it                           |
         // 6 -> repeat N time ----------------------+
+        final long dim1 = 50;
+        final long dim2 = 50;
 
+        final long initialCapacity = (long) (dim1 * dim2 * 1.1);
+        final int l = (int) (dim1 * dim2 * 1.1);
         final KGraph graph = GraphBuilder.builder()
                 //.withScheduler(new NoopScheduler())
-                //.withSpace(new HeapChunkSpace(10000, 10000))
+                .withSpace(new OffHeapChunkSpace(initialCapacity, l))
                 .buildGraph();
         final Deferred<Boolean, Object, Object> connectDeferred = connect(graph);
 
         connectDeferred.then(o -> {
+            Random r = new Random();
             final List<LifeOperation> lifeOperations = new ArrayList<>();
-            lifeOperations.add(LifeOperation.newCell(0, 0));
-            lifeOperations.add(LifeOperation.newCell(0, 1));
-            lifeOperations.add(LifeOperation.newCell(0, 2));
-            lifeOperations.add(LifeOperation.newCell(1, 0));
-            lifeOperations.add(LifeOperation.newCell(1, 2));
-            lifeOperations.add(LifeOperation.newCell(2, 0));
-            lifeOperations.add(LifeOperation.newCell(2, 1));
-            lifeOperations.add(LifeOperation.newCell(2, 2));
+            for(int i = 0; i< dim1; i++) {
+                for(int j = 0; j< dim2; j++) {
+                    if(r.nextInt() % 100 > 75) {
+                        lifeOperations.add(LifeOperation.newCell(i,j));
+                    }
+                }
+            }
 
             Promise<Boolean, Object, Object> firstLifeOperations = proceedLifeOperations(graph, 0, lifeOperations)
                     .then((MultipleResults result) -> save(graph));
-            final int max = 6000;
+            final int max = 10000;
             //final List<int> jksdfjksdf = new Arr
             for (int i = 1; i < max; i++) {
                 //long start = System.currentTimeMillis();
@@ -81,7 +87,7 @@ public class Application {
 
     private static void showState(long lifeI, CellGrid c) {
         System.out.println("State at " + lifeI);
-        System.out.println(c);
+        ///System.out.println(c);
     }
 
     private static Promise<List<LifeOperation>, Object, Object> doLife(final CellGrid result) {

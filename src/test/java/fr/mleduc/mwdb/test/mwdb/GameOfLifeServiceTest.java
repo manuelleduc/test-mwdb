@@ -51,7 +51,9 @@ public class GameOfLifeServiceTest {
         final CellGrid cellGrid = new CellGrid().add(cell1).add(cell2).add(cell3).add(cell4).add(cell5);
         final List<LifeOperation> res = gameOfLifeService.doLife(cellGrid);
         Assertions.assertThat(res)
-                .contains(LifeOperation.deadCell(0, 0), LifeOperation.newCell(1, 1), LifeOperation.newCell(1, -1)).hasSize(3);
+                .contains(LifeOperation.deadCell(0, 0),
+                        LifeOperation.newCell(1, 1),
+                        LifeOperation.newCell(1, -1)).hasSize(3);
 
     }
 
