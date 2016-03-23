@@ -58,23 +58,26 @@ public class CellGrid {
 //        return new CellGrid(this, cellGrid2);
   //  }
 
-   /* @Override
+    @Override
     public String toString() {
+        final Optional<Long> maxXOpt = this.cells.stream().max((o1, o2) -> ((Long) o1.getX()).compareTo(o2.getX())).map(Cell::getX);
+        final Optional<Long> minXOpt = this.cells.stream().min((o1, o2) -> ((Long) o1.getX()).compareTo(o2.getX())).map(Cell::getX);
+        final Optional<Long> maxYOpt = this.cells.stream().max((o1, o2) -> ((Long) o1.getY()).compareTo(o2.getY())).map(Cell::getY);
+        final Optional<Long> minYOpt = this.cells.stream().min((o1, o2) -> ((Long) o1.getY()).compareTo(o2.getY())).map(Cell::getY);
+
         final StringBuilder sb = new StringBuilder();
-        if(!this.empty) {
-            for (long y = this.minY; y <= this.maxY; y++) {
-                for (long x = this.minX; x <= this.maxX; x++) {
-                    if (this.isAlive(x, y)) {
-                        sb.append('x');
+        if(minXOpt.isPresent() && maxXOpt.isPresent() && minYOpt.isPresent() && maxYOpt.isPresent()) {
+            for(long y = minYOpt.get(); y<=maxYOpt.get(); y++) {
+                for(long x = minXOpt.get(); x<=maxXOpt.get(); x++) {
+                    if(cells.contains(new Cell(x,y))) {
+                        sb.append('#');
                     } else {
                         sb.append(' ');
                     }
                 }
                 sb.append('\n');
             }
-        } else {
-            sb.append('*');
         }
         return sb.toString();
-    }*/
+    }
 }
