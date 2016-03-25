@@ -95,7 +95,9 @@ public class Application {
             //final List<int> jksdfjksdf = new Arr
             for (int i = 1; i < max; i++) {
                 //long start = System.currentTimeMillis();
+                EtmPoint point2 = monitor.createPoint("loop");
                 firstLifeOperations = step(graph, firstLifeOperations, i);
+                point2.collect();
 
             }
 
