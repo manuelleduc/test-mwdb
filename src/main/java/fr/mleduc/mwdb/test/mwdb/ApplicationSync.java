@@ -38,7 +38,7 @@ public class ApplicationSync {
         // 6 -> repeat N time ----------------------+
         final long dim1 = 20;
         final long dim2 = 20;
-        final int max = 50000;
+        final int max = 80000;
 
         final long initialCapacity = (long) (dim1 * dim2 * 1.1);
         final int l = (int) (dim1 * dim2 * 1.1);
@@ -83,7 +83,7 @@ public class ApplicationSync {
 
     private static void step(KGraph graph, long lifeI) {
         CellGrid result = getAllCells(graph, lifeI);
-        showState(lifeI, result);
+        //showState(lifeI, result);
         List<LifeOperation> res2 = doLife(result);
         proceedLifeOperations(graph, lifeI, res2);
         save(graph);
@@ -91,7 +91,7 @@ public class ApplicationSync {
 
     private static void showState(long lifeI, CellGrid c) {
         System.out.println("State at " + lifeI);
-        //System.out.println(c);
+        System.out.println(c);
     }
 
     private static List<LifeOperation> doLife(final CellGrid result) {
@@ -112,7 +112,9 @@ public class ApplicationSync {
 
         KNode[] result = getAllNodes(graph, time);
 
-        final List<Cell> lstCells = Arrays.asList(result).stream()
+        final List<KNode> kNodes = Arrays.asList(result);
+
+        final List<Cell> lstCells = kNodes.stream().filter(kNode -> kNode != null)
                 .map(kNode -> {
                     final long x = (long) kNode.att("x");
                     final long y = (long) kNode.att("y");
