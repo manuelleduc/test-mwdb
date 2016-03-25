@@ -1,6 +1,11 @@
 package fr.mleduc.mwdb.test.mwdb;
 
 
+import etm.core.configuration.BasicEtmConfigurator;
+import etm.core.configuration.EtmManager;
+import etm.core.monitor.EtmMonitor;
+import etm.core.monitor.EtmPoint;
+import etm.core.renderer.SimpleTextRenderer;
 import org.jdeferred.Deferred;
 import org.jdeferred.DeferredManager;
 import org.jdeferred.DonePipe;
@@ -36,10 +41,31 @@ public class ApplicationSync {
         // 4 -> produce a serie of life actions     |
         // 5 -> persit it                           |
         // 6 -> repeat N time ----------------------+
+
+
+
+        BasicEtmConfigurator.configure();
+        final EtmMonitor monitor = EtmManager.getEtmMonitor();
+        monitor.start();
+
         final long dim1 = 20;
         final long dim2 = 20;
         final int max = 80000;
 
+        System.currentTimeMillis();
+
+        for(int i=0; i<5; i++) {
+            wholeProcess(monitor, dim1, dim2, max, i);
+        }
+
+        monitor.stop();
+        monitor.render(new SimpleTextRenderer());
+
+    }
+
+    private static void wholeProcess(EtmMonitor monitor, long dim1, long dim2, int max, int iterationLoop) {
+        System.out.println("Start " + iterationLoop);
+        EtmPoint point = monitor.createPoint("start");
         final long initialCapacity = (long) (dim1 * dim2 * 1.1);
         final int l = (int) (dim1 * dim2 * 1.1);
         final KGraph graph = GraphBuilder.builder()
@@ -77,8 +103,9 @@ public class ApplicationSync {
         }
 
         CellGrid c = getAllCells(graph, max);
+        point.collect();
         showState(max, c);
-
+        System.out.println("Stop " + iterationLoop);
     }
 
     private static void step(KGraph graph, long lifeI) {
