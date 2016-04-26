@@ -15,11 +15,11 @@ import org.jdeferred.impl.DeferredObject;
 import org.jdeferred.multiple.MasterProgress;
 import org.jdeferred.multiple.MultipleResults;
 import org.jdeferred.multiple.OneReject;
-import org.mwdb.GraphBuilder;
-import org.mwdb.KGraph;
-import org.mwdb.KNode;
-import org.mwdb.KType;
-import org.mwdb.chunk.offheap.OffHeapChunkSpace;
+import org.mwg.Graph;
+import org.mwg.GraphBuilder;
+import org.mwg.Node;
+import org.mwg.Type;
+import org.mwg.core.NoopScheduler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,8 +47,9 @@ public class Application {
 
         final long dim1 = 20;
         final long dim2 = 20;
-        final int max = 5000;
-        for(int i=0; i<5; i++) {
+        final int max = 100000;
+        final int itts = 5;
+        for(int i = 0; i< itts; i++) {
             wholeProcess(monitor, dim1, dim2, max, i);
         }
 
@@ -64,10 +65,10 @@ public class Application {
 
         final long initialCapacity = (long) (dim1 * dim2 * 1.1);
         final int l = (int) (dim1 * dim2 * 1.1);
-        final KGraph graph = GraphBuilder.builder()
-                //.withScheduler(new NoopScheduler())
-                .withSpace(new OffHeapChunkSpace(initialCapacity, l))
-                .buildGraph();
+        final Graph graph = GraphBuilder.builder()
+                .withScheduler(new NoopScheduler())
+                .withOffHeapMemory().build();
+
         final Deferred<Boolean, Object, Object> connectDeferred = connect(graph);
 
         connectDeferred.then(o -> {
@@ -109,7 +110,7 @@ public class Application {
         System.out.println("Stop " + iterationLoop);
     }
 
-    private static Promise<Boolean, Object, Object> step(KGraph graph, Promise<Boolean, Object, Object> promise, long lifeI) {
+    private static Promise<Boolean, Object, Object> step(Graph graph, Promise<Boolean, Object, Object> promise, long lifeI) {
         return promise
                 .then((Boolean result) -> getAllCells(graph, lifeI))
                 //.then(c -> {showState(lifeI, c); })
@@ -131,19 +132,19 @@ public class Application {
         return deferred;
     }
 
-    private static Deferred<KNode[], Object, Object> getAllNodes(final KGraph graph, final long time) {
-        final Deferred<KNode[], Object, Object> ret = new DeferredObject<>();
+    private static Deferred<Node[], Object, Object> getAllNodes(final Graph graph, final long time) {
+        final Deferred<Node[], Object, Object> ret = new DeferredObject<>();
         graph.all(0, time, "cells", ret::resolve);
         return ret;
     }
 
-    private static Promise<CellGrid, Object, Object> getAllCells(final KGraph graph, final long time) {
+    private static Promise<CellGrid, Object, Object> getAllCells(final Graph graph, final long time) {
         final DeferredObject<CellGrid, Object, Object> ret = new DeferredObject<>();
         getAllNodes(graph, time).then(result -> {
             final List<Cell> lstCells = Arrays.asList(result).stream()
                     .map(kNode -> {
-                        final long x = (long) kNode.att("x");
-                        final long y = (long) kNode.att("y");
+                        final long x = (long) kNode.get("x");
+                        final long y = (long) kNode.get("y");
                         final Cell cell = new Cell(x, y);
                         kNode.free();
                         return cell;
@@ -154,13 +155,13 @@ public class Application {
         return ret;
     }
 
-    private static Promise<MultipleResults, OneReject, MasterProgress> proceedLifeOperations(final KGraph graph, final long time, final List<LifeOperation> lifeOperations) {
+    private static Promise<MultipleResults, OneReject, MasterProgress> proceedLifeOperations(final Graph graph, final long time, final List<LifeOperation> lifeOperations) {
         final Deferred[] res = new Deferred[lifeOperations.size()];
         lifeOperations.stream().map(lifeOperation -> {
             final Promise<Boolean, Object, Object> ret;
             if (lifeOperation.type == LifeOperation.LifeOperationType.New) {
                 // Life
-                final KNode cell = createCell(graph, time, lifeOperation.x, lifeOperation.y);
+                final Node cell = createCell(graph, time, lifeOperation.x, lifeOperation.y);
                 ret = indexCell(graph, cell).then(result -> {
                     cell.free();
                 });
@@ -175,9 +176,9 @@ public class Application {
         return barrierIndexes.when(res);
     }
 
-    private static Promise<Boolean, Object, Object> removeCell(final KGraph graph, final long saveTime, final long x, final long y) {
+    private static Promise<Boolean, Object, Object> removeCell(final Graph graph, final long saveTime, final long x, final long y) {
         final Promise<Boolean, Object, Object> res = lookupCellByCoordinates(graph, saveTime, x, y)
-                .then((DonePipe<KNode, Boolean, Object, Object>) cell -> {
+                .then((DonePipe<Node, Boolean, Object, Object>) cell -> {
                     final Deferred<Boolean, Object, Object> ret = new DeferredObject<>();
                     if (cell == null) {
                         System.out.println("Cell(" + x + ", " + y + ") not found");
@@ -194,8 +195,8 @@ public class Application {
         return res;
     }
 
-    private static Deferred<KNode, Object, Object> lookupCellByCoordinates(final KGraph graph, final long saveTime, final long x, final long y) {
-        final Deferred<KNode, Object, Object> deferred = new DeferredObject<>();
+    private static Deferred<Node, Object, Object> lookupCellByCoordinates(final Graph graph, final long saveTime, final long x, final long y) {
+        final Deferred<Node, Object, Object> deferred = new DeferredObject<>();
         final String query = "x=" + x + ",y=" + y;
         graph.find(0, saveTime, "cells", query, (cell) -> {
             deferred.resolve(cell[0]);
@@ -203,26 +204,26 @@ public class Application {
         return deferred;
     }
 
-    private static KNode createCell(final KGraph graph, long time, long x, long y) {
-        final KNode cell = graph.newNode(0, time);
-        cell.attSet("x", KType.LONG, x);
-        cell.attSet("y", KType.LONG, y);
+    private static Node createCell(final Graph graph, long time, long x, long y) {
+        final Node cell = graph.newNode(0, time);
+        cell.setProperty("x", Type.LONG, x);
+        cell.setProperty("y", Type.LONG, y);
         return cell;
     }
 
-    private static Promise<Boolean, Object, Object> indexCell(final KGraph graph, KNode cell) {
+    private static Promise<Boolean, Object, Object> indexCell(final Graph graph, Node cell) {
         final Deferred<Boolean, Object, Object> ret = new DeferredObject<>();
         graph.index("cells", cell, new String[]{"x", "y"}, ret::resolve);
         return ret;
     }
 
-    private static Deferred<Boolean, Object, Object> save(final KGraph graph) {
+    private static Deferred<Boolean, Object, Object> save(final Graph graph) {
         final Deferred<Boolean, Object, Object> ret = new DeferredObject<>();
         graph.save(ret::resolve);
         return ret;
     }
 
-    private static Deferred<Boolean, Object, Object> connect(final KGraph graph) {
+    private static Deferred<Boolean, Object, Object> connect(final Graph graph) {
         final Deferred<Boolean, Object, Object> ret = new DeferredObject<>();
         graph.connect(ret::resolve);
         return ret;

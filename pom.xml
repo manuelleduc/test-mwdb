@@ -10,8 +10,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.kevoree.mwdb</groupId>
+            <groupId>org.kevoree.mwg</groupId>
             <artifactId>core</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kevoree.mwg.plugins</groupId>
+            <artifactId>rocksdb</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -36,6 +41,7 @@
             <artifactId>jetm</artifactId>
             <version>1.2.3</version>
         </dependency>
+
     </dependencies>
     <build>
         <plugins>

@@ -6,25 +6,11 @@ import etm.core.configuration.EtmManager;
 import etm.core.monitor.EtmMonitor;
 import etm.core.monitor.EtmPoint;
 import etm.core.renderer.SimpleTextRenderer;
-import org.jdeferred.Deferred;
-import org.jdeferred.DeferredManager;
-import org.jdeferred.DonePipe;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DefaultDeferredManager;
-import org.jdeferred.impl.DeferredObject;
-import org.jdeferred.multiple.MasterProgress;
-import org.jdeferred.multiple.MultipleResults;
-import org.jdeferred.multiple.OneReject;
-import org.mwdb.GraphBuilder;
-import org.mwdb.KGraph;
-import org.mwdb.KNode;
-import org.mwdb.KType;
-import org.mwdb.chunk.offheap.OffHeapChunkSpace;
+import org.mwg.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -50,11 +36,10 @@ public class ApplicationSync {
 
         final long dim1 = 20;
         final long dim2 = 20;
-        final int max = 80000;
+        final int max = 20000;
+        final int itts = 5;
 
-        System.currentTimeMillis();
-
-        for(int i=0; i<5; i++) {
+        for(int i = 0; i< itts; i++) {
             wholeProcess(monitor, dim1, dim2, max, i);
         }
 
@@ -68,10 +53,10 @@ public class ApplicationSync {
         EtmPoint point = monitor.createPoint("start");
         final long initialCapacity = (long) (dim1 * dim2 * 1.1);
         final int l = (int) (dim1 * dim2 * 1.1);
-        final KGraph graph = GraphBuilder.builder()
-                //.withScheduler(new NoopScheduler())
-                .withSpace(new OffHeapChunkSpace(initialCapacity, l))
-                .buildGraph();
+        final Graph graph = GraphBuilder.builder()
+                .withOffHeapMemory()
+                .withStorage(new RocksDBStorage("./itt-"+iterationLoop))
+                .build();
         connect(graph);
 
         final List<LifeOperation> lifeOperations = new ArrayList<>();
@@ -110,7 +95,7 @@ public class ApplicationSync {
         System.out.println("Stop " + iterationLoop);
     }
 
-    private static void step(KGraph graph, long lifeI) {
+    private static void step(Graph graph, long lifeI) {
         CellGrid result = getAllCells(graph, lifeI);
         //showState(lifeI, result);
         List<LifeOperation> res2 = doLife(result);
@@ -129,24 +114,24 @@ public class ApplicationSync {
         return lifeOperations;
     }
 
-    private static KNode[] getAllNodes(final KGraph graph, final long time) {
-        final KNode[][] ret = new KNode[1][1];
+    private static Node[] getAllNodes(final Graph graph, final long time) {
+        final Node[][] ret = new Node[1][1];
         graph.all(0, time, "cells", result -> {
             ret[0] = result;
         });
         return ret[0];
     }
 
-    private static CellGrid getAllCells(final KGraph graph, final long time) {
+    private static CellGrid getAllCells(final Graph graph, final long time) {
 
-        KNode[] result = getAllNodes(graph, time);
+        Node[] result = getAllNodes(graph, time);
 
-        final List<KNode> kNodes = Arrays.asList(result);
+        final List<Node> kNodes = Arrays.asList(result);
 
         final List<Cell> lstCells = kNodes.stream().filter(kNode -> kNode != null)
                 .map(kNode -> {
-                    final long x = (long) kNode.att("x");
-                    final long y = (long) kNode.att("y");
+                    final long x = (long) kNode.get("x");
+                    final long y = (long) kNode.get("y");
                     final Cell cell = new Cell(x, y);
                     kNode.free();
                     return cell;
@@ -154,12 +139,12 @@ public class ApplicationSync {
         return new CellGrid(lstCells);
     }
 
-    private static void proceedLifeOperations(final KGraph graph, final long time, final List<LifeOperation> lifeOperations) {
+    private static void proceedLifeOperations(final Graph graph, final long time, final List<LifeOperation> lifeOperations) {
 
         lifeOperations.stream().forEach(lifeOperation -> {
             if (lifeOperation.type == LifeOperation.LifeOperationType.New) {
                 // Life
-                final KNode cell = createCell(graph, time, lifeOperation.x, lifeOperation.y);
+                final Node cell = createCell(graph, time, lifeOperation.x, lifeOperation.y);
                 indexCell(graph, cell);
                 cell.free();
             } else {
@@ -171,8 +156,8 @@ public class ApplicationSync {
 
     }
 
-    private static void removeCell(final KGraph graph, final long saveTime, final long x, final long y) {
-        final KNode cell = lookupCellByCoordinates(graph, saveTime, x, y);
+    private static void removeCell(final Graph graph, final long saveTime, final long x, final long y) {
+        final Node cell = lookupCellByCoordinates(graph, saveTime, x, y);
 
         if (cell == null) {
             System.out.println("Cell(" + x + ", " + y + ") not found");
@@ -183,31 +168,31 @@ public class ApplicationSync {
 
     }
 
-    private static KNode lookupCellByCoordinates(final KGraph graph, final long saveTime, final long x, final long y) {
+    private static Node lookupCellByCoordinates(final Graph graph, final long saveTime, final long x, final long y) {
         final String query = "x=" + x + ",y=" + y;
-        final KNode[] ret = new KNode[1];
+        final Node[] ret = new Node[1];
         graph.find(0, saveTime, "cells", query, (cell) -> {
             ret[0] = cell[0];
         });
         return ret[0];
     }
 
-    private static KNode createCell(final KGraph graph, long time, long x, long y) {
-        final KNode cell = graph.newNode(0, time);
-        cell.attSet("x", KType.LONG, x);
-        cell.attSet("y", KType.LONG, y);
+    private static Node createCell(final Graph graph, long time, long x, long y) {
+        final Node cell = graph.newNode(0, time);
+        cell.setProperty("x", Type.LONG, x);
+        cell.setProperty("y", Type.LONG, y);
         return cell;
     }
 
-    private static void indexCell(final KGraph graph, KNode cell) {
+    private static void indexCell(final Graph graph, Node cell) {
         graph.index("cells", cell, new String[]{"x", "y"}, null);
     }
 
-    private static void save(final KGraph graph) {
+    private static void save(final Graph graph) {
         graph.save(null);
     }
 
-    private static void connect(final KGraph graph) {
+    private static void connect(final Graph graph) {
         graph.connect(null);
     }
 }
