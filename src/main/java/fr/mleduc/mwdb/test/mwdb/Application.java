@@ -47,9 +47,9 @@ public class Application {
 
         final long dim1 = 20;
         final long dim2 = 20;
-        final int max = 100000;
-        final int itts = 5;
-        for(int i = 0; i< itts; i++) {
+        final int max = 10_000;
+        final int itts = 1;
+        for (int i = 0; i < itts; i++) {
             wholeProcess(monitor, dim1, dim2, max, i);
         }
 
@@ -82,14 +82,14 @@ public class Application {
                 }
             }*/
 
-            lifeOperations.add(LifeOperation.newCell(0,0));
-            lifeOperations.add(LifeOperation.newCell(0,1));
-            lifeOperations.add(LifeOperation.newCell(0,2));
-            lifeOperations.add(LifeOperation.newCell(1,0));
-            lifeOperations.add(LifeOperation.newCell(1,2));
-            lifeOperations.add(LifeOperation.newCell(2,0));
-            lifeOperations.add(LifeOperation.newCell(2,1));
-            lifeOperations.add(LifeOperation.newCell(2,2));
+            lifeOperations.add(LifeOperation.newCell(0, 0));
+            lifeOperations.add(LifeOperation.newCell(0, 1));
+            lifeOperations.add(LifeOperation.newCell(0, 2));
+            lifeOperations.add(LifeOperation.newCell(1, 0));
+            lifeOperations.add(LifeOperation.newCell(1, 2));
+            lifeOperations.add(LifeOperation.newCell(2, 0));
+            lifeOperations.add(LifeOperation.newCell(2, 1));
+            lifeOperations.add(LifeOperation.newCell(2, 2));
 
             Promise<Boolean, Object, Object> firstLifeOperations = proceedLifeOperations(graph, 0, lifeOperations)
                     .then((MultipleResults result) -> save(graph));
@@ -105,7 +105,10 @@ public class Application {
             final Promise<CellGrid, Object, Object> then1 = firstLifeOperations
                     .then((Boolean result) -> getAllCells(graph, max));
 
-                then1.then((CellGrid aaa ) -> { point.collect();  return aaa; }).done(c -> showState(max, c));
+            then1.then((CellGrid aaa) -> {
+                point.collect();
+                return aaa;
+            }).done(c -> showState(max, c));
         });
         System.out.println("Stop " + iterationLoop);
     }

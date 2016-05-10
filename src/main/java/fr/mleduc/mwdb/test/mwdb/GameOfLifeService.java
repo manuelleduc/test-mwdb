@@ -21,7 +21,7 @@ public class GameOfLifeService {
             } else {
                 long cpt = cellGrid.countNeighbourAlive(x, y);
                 if (cpt == 3) {
-                    lifeOperations.add(LifeOperation.newCell(x,y));
+                    lifeOperations.add(LifeOperation.newCell(x, y));
                 }
             }
             return lifeOperations.stream();

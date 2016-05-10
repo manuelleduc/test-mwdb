@@ -46,7 +46,7 @@ public class CellGrid {
     }
 
     public boolean isAlive(long x, long y) {
-        return this.cells.contains(new Cell(x,y));
+        return this.cells.contains(new Cell(x, y));
     }
 
     public long countNeighbourAlive(final long x, final long y) {
@@ -56,7 +56,7 @@ public class CellGrid {
 
     //public CellGrid add(CellGrid cellGrid2) {
 //        return new CellGrid(this, cellGrid2);
-  //  }
+    //  }
 
     @Override
     public String toString() {
@@ -66,10 +66,10 @@ public class CellGrid {
         final Optional<Long> minYOpt = this.cells.stream().min((o1, o2) -> ((Long) o1.getY()).compareTo(o2.getY())).map(Cell::getY);
 
         final StringBuilder sb = new StringBuilder();
-        if(minXOpt.isPresent() && maxXOpt.isPresent() && minYOpt.isPresent() && maxYOpt.isPresent()) {
-            for(long y = minYOpt.get(); y<=maxYOpt.get(); y++) {
-                for(long x = minXOpt.get(); x<=maxXOpt.get(); x++) {
-                    if(cells.contains(new Cell(x,y))) {
+        if (minXOpt.isPresent() && maxXOpt.isPresent() && minYOpt.isPresent() && maxYOpt.isPresent()) {
+            for (long y = minYOpt.get(); y <= maxYOpt.get(); y++) {
+                for (long x = minXOpt.get(); x <= maxXOpt.get(); x++) {
+                    if (cells.contains(new Cell(x, y))) {
                         sb.append('#');
                     } else {
                         sb.append(' ');

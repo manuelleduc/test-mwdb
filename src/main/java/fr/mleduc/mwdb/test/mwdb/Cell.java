@@ -53,21 +53,21 @@ public class Cell implements Comparable<Cell> {
 
     public Collection<? extends Cell> getNeighbours() {
         final Collection<Cell> cells = new TreeSet<>();
-        cells.add(new Cell(x-1, y-1));
-        cells.add(new Cell(x-1, y));
-        cells.add(new Cell(x-1, y+1));
-        cells.add(new Cell(x, y-1));
-        cells.add(new Cell(x, y+1));
-        cells.add(new Cell(x+1, y-1));
-        cells.add(new Cell(x+1, y));
-        cells.add(new Cell(x+1, y+1));
+        cells.add(new Cell(x - 1, y - 1));
+        cells.add(new Cell(x - 1, y));
+        cells.add(new Cell(x - 1, y + 1));
+        cells.add(new Cell(x, y - 1));
+        cells.add(new Cell(x, y + 1));
+        cells.add(new Cell(x + 1, y - 1));
+        cells.add(new Cell(x + 1, y));
+        cells.add(new Cell(x + 1, y + 1));
         return cells;
     }
 
     @Override
     public int compareTo(Cell o) {
         final long i = o.x - x;
-        if(i == 0) {
+        if (i == 0) {
             return (int) (o.y - y);
         }
         return (int) i;

@@ -8,7 +8,10 @@ public class LifeOperation {
     public final long x;
     public final long y;
 
-    public enum LifeOperationType {New, Dead};
+    public enum LifeOperationType {New, Dead}
+
+    ;
+
     private LifeOperation(final LifeOperationType type, final long x, final long y) {
         this.type = type;
         this.x = x;

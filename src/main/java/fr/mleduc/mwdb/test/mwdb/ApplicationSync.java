@@ -29,7 +29,6 @@ public class ApplicationSync {
         // 6 -> repeat N time ----------------------+
 
 
-
         BasicEtmConfigurator.configure();
         final EtmMonitor monitor = EtmManager.getEtmMonitor();
         monitor.start();
@@ -37,10 +36,10 @@ public class ApplicationSync {
         final long dim1 = 20;
         final long dim2 = 20;
         final int max = 20000;
-        final int itts = 5;
+        final int itts = 1;
 
-        for(int i = 0; i< itts; i++) {
-            wholeProcess(monitor, dim1, dim2, max, i);
+        for (int i = 0; i < itts; i++) {
+            wholeProcess(monitor, max, i);
         }
 
         monitor.stop();
@@ -48,35 +47,25 @@ public class ApplicationSync {
 
     }
 
-    private static void wholeProcess(EtmMonitor monitor, long dim1, long dim2, int max, int iterationLoop) {
+    private static void wholeProcess(EtmMonitor monitor, int max, int iterationLoop) {
         System.out.println("Start " + iterationLoop);
         EtmPoint point = monitor.createPoint("start");
-        final long initialCapacity = (long) (dim1 * dim2 * 1.1);
-        final int l = (int) (dim1 * dim2 * 1.1);
         final Graph graph = GraphBuilder.builder()
                 .withOffHeapMemory()
-                .withStorage(new RocksDBStorage("./itt-"+iterationLoop))
+                .withStorage(new RocksDBStorage("./itt-" + iterationLoop))
                 .build();
         connect(graph);
 
         final List<LifeOperation> lifeOperations = new ArrayList<>();
-       /* Random r = new Random();
-        for (int i = 0; i < dim1; i++) {
-            for (int j = 0; j < dim2; j++) {
-                if (r.nextInt() % 100 > 75) {
-                    lifeOperations.add(LifeOperation.newCell(i, j));
-                }
-            }
-        }*/
 
-        lifeOperations.add(LifeOperation.newCell(0,0));
-        lifeOperations.add(LifeOperation.newCell(0,1));
-        lifeOperations.add(LifeOperation.newCell(0,2));
-        lifeOperations.add(LifeOperation.newCell(1,0));
-        lifeOperations.add(LifeOperation.newCell(1,2));
-        lifeOperations.add(LifeOperation.newCell(2,0));
-        lifeOperations.add(LifeOperation.newCell(2,1));
-        lifeOperations.add(LifeOperation.newCell(2,2));
+        lifeOperations.add(LifeOperation.newCell(0, 0));
+        lifeOperations.add(LifeOperation.newCell(0, 1));
+        lifeOperations.add(LifeOperation.newCell(0, 2));
+        lifeOperations.add(LifeOperation.newCell(1, 0));
+        lifeOperations.add(LifeOperation.newCell(1, 2));
+        lifeOperations.add(LifeOperation.newCell(2, 0));
+        lifeOperations.add(LifeOperation.newCell(2, 1));
+        lifeOperations.add(LifeOperation.newCell(2, 2));
 
         proceedLifeOperations(graph, 0, lifeOperations);
         save(graph);
