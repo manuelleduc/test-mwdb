@@ -10,9 +10,9 @@ import org.mwg.task.TaskContext;
 public class IndexTaskAction implements TaskAction {
     private final String indexName;
     private final Node node;
-    private final String[] keyAttributes;
+    private final String keyAttributes;
 
-    public IndexTaskAction(final String indexName, final Node node, final String[] keyAttributes) {
+    public IndexTaskAction(final String indexName, final Node node, final String keyAttributes) {
         this.indexName = indexName;
         this.node = node;
         this.keyAttributes = keyAttributes;

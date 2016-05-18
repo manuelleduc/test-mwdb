@@ -116,7 +116,7 @@ public class ApplicationTask {
     }
 
     private static Task indexCell(Graph graph, Node cell) {
-        return graph.newTask().then(new IndexTaskAction("cells", cell, new String[]{"x", "y"})).then(context -> {
+        return graph.newTask().then(new IndexTaskAction("cells", cell, "x,y")).then(context -> {
             cell.free();
         });
     }
